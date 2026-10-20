@@ -1,0 +1,33 @@
+name: Build Reflex.exe
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Make icon
+        shell: pwsh
+        run: ./make-icon.ps1
+      - name: Build
+        run: |
+          npm install --no-fund --no-audit
+          npm run build
+      - name: Publish to Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Reflex (latest)
+          body: Download **Reflex.exe** below and double-click it to play. If Windows says "protected your PC", click More info → Run anyway.
+          files: dist/Reflex.exe
+          make_latest: true
