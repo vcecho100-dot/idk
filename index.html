@@ -3,106 +3,385 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reflex</title>
+<title>Model AI</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <meta name="theme-color" content="#0f1117">
 <style>
-  :root { --bg:#0f1117; --card:#1a1d27; --text:#f2f3f7; --muted:#8b90a3; --wait:#e5484d; --go:#30a46c; --idle:#3e63dd; }
+  :root { --bg:#0f1117; --card:#1a1d27ee; --text:#f2f3f7; --muted:#8b90a3; --accent:#6e56cf; --line:#2a2e3d; }
   * { box-sizing:border-box; }
-  body { margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
-         gap:20px; padding:16px; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif; user-select:none; }
-  h1 { margin:0; font-size:2rem; letter-spacing:1px; }
-  #box { width:min(520px,100%); height:300px; border-radius:20px; display:flex; flex-direction:column; align-items:center;
-         justify-content:center; text-align:center; cursor:pointer; background:var(--idle); transition:background .1s; padding:16px; }
-  #box.wait { background:var(--wait); }
-  #box.go { background:var(--go); }
-  #big { font-size:2.6rem; font-weight:800; }
-  #small { font-size:1.1rem; opacity:.9; margin-top:8px; }
-  .stats { display:flex; gap:12px; width:min(520px,100%); }
-  .stat { flex:1; background:var(--card); border-radius:14px; padding:12px; text-align:center; }
-  .stat b { display:block; font-size:1.4rem; }
-  .stat span { color:var(--muted); font-size:.85rem; }
-  #history { color:var(--muted); font-size:.9rem; min-height:1.2em; text-align:center; }
-  .buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  #install { color:var(--text); border-color:var(--go); }
-  button, .btn { background:var(--card); color:var(--muted); border:1px solid #2a2e3d; border-radius:10px; padding:8px 14px; cursor:pointer;
-                 font:inherit; font-size:.85rem; text-decoration:none; }
+  html, body { margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif; }
+  canvas { display:block; touch-action:none; cursor:grab; }
+  canvas:active { cursor:grabbing; }
+  #panel { position:fixed; top:16px; left:16px; width:min(460px, calc(100% - 32px)); background:var(--card); border:1px solid var(--line);
+           border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:10px; backdrop-filter:blur(6px); }
+  h1 { margin:0; font-size:1.3rem; }
+  h1 small { color:var(--muted); font-weight:400; font-size:.8rem; }
+  .row { display:flex; gap:8px; }
+  input { flex:1; min-width:0; background:#0f1117; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:9px 12px; font:inherit; }
+  input:focus { outline:2px solid var(--accent); border-color:transparent; }
+  button, .btn { background:#1a1d27; color:var(--muted); border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer;
+                 font:inherit; font-size:.85rem; text-decoration:none; white-space:nowrap; }
+  button:hover, .btn:hover { color:var(--text); }
+  #go { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .buttons { display:flex; gap:8px; flex-wrap:wrap; }
+  #status { font-size:.95rem; min-height:1.2em; }
+  #help { color:var(--muted); font-size:.8rem; line-height:1.4; }
+  #error { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; color:var(--muted); }
   [hidden] { display:none !important; }
 </style>
 </head>
 <body>
-  <h1>⚡ Reflex</h1>
-  <div id="box"><div id="big">Click to start</div><div id="small">Wait for green, then click fast!</div></div>
-  <div class="stats">
-    <div class="stat"><b id="last">–</b><span>Last</span></div>
-    <div class="stat"><b id="avg">–</b><span>Avg (last 5)</span></div>
-    <div class="stat"><b id="best">–</b><span>Best</span></div>
+  <div id="panel">
+    <h1>🧊 Model AI <small>test version</small></h1>
+    <div class="row">
+      <input id="prompt" placeholder="Describe a model… e.g. 3 green trees" autocomplete="off">
+      <button id="go">Generate</button>
+    </div>
+    <div class="buttons">
+      <button id="random">🎲 Random</button>
+      <button id="save">💾 Save .obj</button>
+      <button id="install" hidden>⬇ Install app</button>
+      <a id="download" class="btn" href="https://github.com/vcecho100-dot/idk/releases/latest/download/ModelAI.exe">⬇ Download app</a>
+    </div>
+    <div id="status"></div>
+    <div id="help">Drag to rotate · Scroll to zoom<br>
+      Knows: car, tree, house, snowman, robot, rocket, tower, table, cube, sphere, cylinder, cone, donut, capsule
+      + colors, big/small and numbers. Anything else becomes a random sculpture.</div>
   </div>
-  <div id="history"></div>
-  <div class="buttons">
-    <button id="reset">Reset best</button>
-    <button id="install" hidden>⬇ Install app</button>
-    <a id="download" class="btn" href="https://github.com/vcecho100-dot/idk/releases/latest/download/Reflex.exe">⬇ Download app</a>
-  </div>
+  <div id="error" hidden>Couldn't load the 3D engine. Check your internet connection and reload.</div>
 
+<!-- The .exe ships three.js locally; the website / zip falls back to the CDN. -->
+<script src="node_modules/three/build/three.min.js"></script>
+<script>window.THREE || document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"><\/script>');</script>
 <script>
-const box = document.getElementById('box'), big = document.getElementById('big'), small = document.getElementById('small');
-let state = 'idle', timer = null, start = 0, times = [];
-let best = null;
-try { best = Number(localStorage.getItem('reflex-best')) || null; } catch (e) {}
-showStats();
+// No real AI yet: reads keywords (shape, color, size, count) from the prompt.
+// Unknown prompts become a random sculpture seeded from the text.
+if (!window.THREE) { document.getElementById('error').hidden = false; throw new Error('three.js missing'); }
 
-function rank(ms) {
-  if (ms < 200) return '🐐 Pro gamer';
-  if (ms < 250) return '🔥 Fast';
-  if (ms < 300) return '👍 Solid';
-  if (ms < 400) return '🙂 Average';
-  return '🐢 Sleepy';
+const COLORS = {
+  red:0xd92626, green:0x33b340, blue:0x3366e6, yellow:0xf2d933, orange:0xf2801a, purple:0x9940cc,
+  pink:0xf280b3, white:0xf2f2f2, black:0x141414, gray:0x808080, grey:0x808080, brown:0x73471f,
+  gold:0xffcc4d, silver:0xccccd9, cyan:0x33d9e6,
+};
+const KINDS = {
+  car:'car', truck:'car', tree:'tree', house:'house', home:'house', snowman:'snowman', robot:'robot',
+  rocket:'rocket', tower:'tower', table:'table', cube:'cube', box:'cube', boxes:'cube', sphere:'sphere',
+  ball:'sphere', cylinder:'cylinder', cone:'cone', donut:'torus', torus:'torus', ring:'torus',
+  capsule:'capsule', pill:'capsule',
+};
+const NUMBERS = { one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9 };
+const EXAMPLES = ['red car', '3 green trees', 'big snowman', 'blue robot', 'rocket', 'small house',
+                  '5 gold donuts', 'purple tower', 'wooden table', 'space dragon'];
+const DEG = Math.PI / 180;
+
+// ---------------------------------------------------------------- scene
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1b2233);
+scene.fog = new THREE.Fog(0x1b2233, 25, 60);
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x30343c, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(6, 10, 7);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left:-15, right:15, top:15, bottom:-15 });
+scene.add(sun);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshStandardMaterial({ color:0x3a4150, roughness:1 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+const grid = new THREE.GridHelper(120, 120, 0x4a5265, 0x434a5a);
+grid.position.y = 0.002;
+scene.add(grid);
+
+const modelRoot = new THREE.Group();
+scene.add(modelRoot);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
+
+function resize() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+
+// ---------------------------------------------------------------- camera orbit
+const cam = { yaw:0.6, pitch:0.35, dist:8, targetY:1, autoSpin:true };
+let drag = null;
+const canvas = renderer.domElement;
+canvas.addEventListener('pointerdown', e => { drag = { x:e.clientX, y:e.clientY }; cam.autoSpin = false; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointerup', () => { drag = null; });
+canvas.addEventListener('pointermove', e => {
+  if (!drag) return;
+  cam.yaw -= (e.clientX - drag.x) * 0.01;
+  cam.pitch = Math.min(1.4, Math.max(-0.2, cam.pitch + (e.clientY - drag.y) * 0.01));
+  drag = { x:e.clientX, y:e.clientY };
+});
+canvas.addEventListener('wheel', e => { e.preventDefault(); cam.dist = Math.min(40, Math.max(2, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive:false });
+
+function updateCamera() {
+  const c = Math.cos(cam.pitch);
+  camera.position.set(Math.sin(cam.yaw) * c * cam.dist, cam.targetY + Math.sin(cam.pitch) * cam.dist, Math.cos(cam.yaw) * c * cam.dist);
+  camera.lookAt(0, cam.targetY, 0);
 }
 
-function set(cls, a, b) { box.className = cls; big.textContent = a; small.textContent = b; }
+// ---------------------------------------------------------------- pop-in animation
+let pops = [];
+function easeOutBack(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
 
-function press() {
-  if (state === 'idle' || state === 'result') {
-    state = 'wait';
-    set('wait', 'Wait…', 'Don\'t click yet!');
-    timer = setTimeout(() => { state = 'go'; start = performance.now(); set('go', 'CLICK!', ''); }, 1200 + Math.random() * 2800);
-  } else if (state === 'wait') {
-    clearTimeout(timer);
-    state = 'result';
-    set('', 'Too early! 😅', 'Click to try again');
-  } else if (state === 'go') {
-    const ms = Math.round(performance.now() - start);
-    state = 'result';
-    times.push(ms);
-    if (best === null || ms < best) { best = ms; try { localStorage.setItem('reflex-best', ms); } catch (e) {} }
-    set('', ms + ' ms', rank(ms) + ' · click to go again');
-    showStats();
+let last = performance.now();
+renderer.setAnimationLoop(now => {
+  const dt = (now - last) / 1000; last = now;
+  if (cam.autoSpin && !drag) cam.yaw += dt * 0.3;
+  for (const p of pops) {
+    const t = Math.min(1, Math.max(0, (now - p.start) / 450));
+    p.obj.scale.setScalar(Math.max(0.01, easeOutBack(t)) * p.size);
+  }
+  pops = pops.filter(p => now - p.start < 450);
+  updateCamera();
+  renderer.render(scene, camera);
+});
+
+// ---------------------------------------------------------------- generation
+const $ = id => document.getElementById(id);
+const promptEl = $('prompt'), statusEl = $('status');
+let lastPrompt = '', genId = 0, rand = Math.random;
+
+function seeded(str) {
+  let h = 1779033703;
+  for (const ch of str) h = Math.imul(h ^ ch.charCodeAt(0), 3432918353), h = h << 13 | h >>> 19;
+  return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+}
+const randRange = (a, b) => a + rand() * (b - a);
+
+async function generate(text) {
+  let p = text.toLowerCase().trim() || 'random thing';
+  lastPrompt = p;
+  const id = ++genId;
+  statusEl.textContent = 'Thinking…';
+  await new Promise(r => setTimeout(r, 350));
+  if (id !== genId) return; // a newer request replaced this one
+
+  for (const child of [...modelRoot.children]) { disposeTree(child); modelRoot.remove(child); }
+  pops = [];
+  rand = seeded(p);
+
+  let color = null, size = 1, count = 1, kind = '';
+  for (const w of p.replace(/,/g, ' ').split(/\s+/).filter(Boolean)) {
+    if (w in COLORS) color = COLORS[w];
+    else if (['big', 'huge', 'giant', 'large'].includes(w)) size = 1.6;
+    else if (['small', 'tiny', 'little', 'mini'].includes(w)) size = 0.6;
+    else if (/^\d+$/.test(w)) count = Math.min(9, Math.max(1, +w));
+    else if (w in NUMBERS) count = NUMBERS[w];
+    else if (!kind) for (const c of [w, w.replace(/s$/, ''), w.replace(/es$/, '')]) if (c in KINDS) { kind = KINDS[c]; break; }
+  }
+  if (p.includes('wood') && color === null) color = COLORS.brown;
+  if (!kind) kind = 'abstract';
+
+  const spacing = 3 * size, now = performance.now();
+  for (let i = 0; i < count; i++) {
+    const item = new THREE.Group();
+    item.position.x = (i - (count - 1) / 2) * spacing;
+    item.scale.setScalar(size);
+    modelRoot.add(item);
+    build(kind, item, color);
+    pops.push({ obj:item, size, start:now + i * 100 });
+  }
+
+  // Frame the camera on the full-size model, then shrink it for the pop-in.
+  const bounds = new THREE.Box3().setFromObject(modelRoot), dims = bounds.getSize(new THREE.Vector3());
+  for (const p of pops) p.obj.scale.setScalar(0.01);
+  cam.targetY = dims.y * 0.7; // aim above the middle so the model sits below the panel
+  cam.dist = Math.min(45, Math.max(4, Math.max(dims.x, dims.y * 1.5, dims.z) * 1.7 + 2));
+  statusEl.textContent = `Made: ${count} × ${kind === 'abstract' ? "random sculpture (didn't recognize a shape)" : kind}`;
+}
+
+function disposeTree(obj) {
+  obj.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+}
+
+// ---------------------------------------------------------------- mesh helpers
+const col = (c, d) => new THREE.Color(c ?? d);
+const lighten = (c, a) => c.clone().lerp(new THREE.Color(1, 1, 1), a);
+const darken = (c, a) => c.clone().multiplyScalar(1 - a);
+const box = (x, y, z) => new THREE.BoxGeometry(x, y, z);
+const sphere = r => new THREE.SphereGeometry(r, 32, 16);
+const cyl = (r, h) => new THREE.CylinderGeometry(r, r, h, 28);
+const cone = (r, h) => new THREE.CylinderGeometry(0, r, h, 28);
+const torus = (inner, outer) => new THREE.TorusGeometry((inner + outer) / 2, (outer - inner) / 2, 16, 40);
+
+function part(parent, geo, pos, color, rot = [0, 0, 0]) {
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness:0.6 }));
+  m.position.set(...pos);
+  m.rotation.set(rot[0] * DEG, rot[1] * DEG, rot[2] * DEG);
+  m.castShadow = m.receiveShadow = true;
+  parent.add(m);
+  return m;
+}
+
+function roof(w, h, d) {
+  const s = new THREE.Shape();
+  s.moveTo(-w / 2, -h / 2); s.lineTo(w / 2, -h / 2); s.lineTo(0, h / 2); s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth:d, bevelEnabled:false });
+  g.translate(0, 0, -d / 2);
+  return g;
+}
+
+function build(kind, n, color) {
+  switch (kind) {
+    case 'car': {
+      const body = col(color, 0xd92626);
+      part(n, box(2.2, 0.5, 1.1), [0, 0.55, 0], body);
+      part(n, box(1.2, 0.45, 1.0), [-0.1, 1.0, 0], lighten(body, 0.2));
+      for (const x of [-0.7, 0.7]) for (const z of [-0.55, 0.55]) part(n, cyl(0.3, 0.25), [x, 0.3, z], 0x141414, [90, 0, 0]);
+      for (const z of [-0.35, 0.35]) part(n, sphere(0.1), [1.1, 0.6, z], 0xfff299);
+      break;
+    }
+    case 'tree': {
+      const leaves = col(color, 0x339940);
+      part(n, cyl(0.15, 1.2), [0, 0.6, 0], 0x73471f);
+      part(n, cone(0.8, 1.4), [0, 1.6, 0], leaves);
+      part(n, cone(0.6, 1.1), [0, 2.3, 0], lighten(leaves, 0.1));
+      break;
+    }
+    case 'house': {
+      part(n, box(2.0, 1.4, 1.8), [0, 0.7, 0], col(color, 0xe6d9b3));
+      part(n, roof(2.3, 0.9, 2.0), [0, 1.85, 0], 0x993326);
+      part(n, box(0.4, 0.7, 0.05), [0, 0.35, 0.91], 0x66401a);
+      for (const x of [-0.6, 0.6]) part(n, box(0.35, 0.35, 0.05), [x, 0.9, 0.91], 0x99ccff);
+      break;
+    }
+    case 'snowman': {
+      const snow = 0xf2f2fa;
+      part(n, sphere(0.6), [0, 0.6, 0], snow);
+      part(n, sphere(0.45), [0, 1.55, 0], snow);
+      part(n, sphere(0.32), [0, 2.25, 0], snow);
+      part(n, cone(0.06, 0.3), [0, 2.25, 0.4], 0xf2801a, [90, 0, 0]);
+      for (const x of [-0.1, 0.1]) part(n, sphere(0.04), [x, 2.33, 0.29], 0x0d0d0d);
+      part(n, torus(0.28, 0.4), [0, 1.95, 0], col(color, 0xd92626), [90, 0, 0]);
+      part(n, cyl(0.25, 0.35), [0, 2.62, 0], 0x141414);
+      break;
+    }
+    case 'robot': {
+      const metal = col(color, 0x999ea8);
+      for (const x of [-0.25, 0.25]) part(n, box(0.3, 0.7, 0.3), [x, 0.35, 0], darken(metal, 0.2));
+      part(n, box(1.0, 1.2, 0.6), [0, 1.3, 0], metal);
+      for (const x of [-0.65, 0.65]) part(n, box(0.25, 0.9, 0.25), [x, 1.3, 0], darken(metal, 0.1));
+      part(n, box(0.6, 0.5, 0.5), [0, 2.2, 0], lighten(metal, 0.1));
+      for (const x of [-0.13, 0.13]) part(n, sphere(0.07), [x, 2.25, 0.26], 0x33e6ff);
+      part(n, cyl(0.03, 0.3), [0, 2.6, 0], metal);
+      part(n, sphere(0.07), [0, 2.78, 0], 0xff3333);
+      break;
+    }
+    case 'rocket': {
+      part(n, cyl(0.4, 2.2), [0, 1.4, 0], col(color, 0xf2f2f2));
+      part(n, cone(0.4, 0.8), [0, 2.9, 0], 0xd92626);
+      part(n, sphere(0.15), [0, 1.8, 0.36], 0x66b3ff);
+      for (let k = 0; k < 3; k++) {
+        const a = k * Math.PI * 2 / 3;
+        part(n, box(0.05, 0.6, 0.5), [Math.sin(a) * 0.45, 0.55, Math.cos(a) * 0.45], 0xd92626, [0, a / DEG, 0]);
+      }
+      break;
+    }
+    case 'tower': {
+      const stone = col(color, 0x99948c);
+      let y = 0;
+      for (let level = 0; level < 5; level++) {
+        const w = 1.4 - level * 0.22, h = 0.7;
+        part(n, box(w, h, w), [0, y + h / 2, 0], lighten(stone, level * 0.06));
+        y += h;
+      }
+      part(n, cone(0.45, 0.8), [0, y + 0.4, 0], 0x993326);
+      break;
+    }
+    case 'table': {
+      const wood = col(color, 0x73471f);
+      part(n, box(2.0, 0.12, 1.2), [0, 0.8, 0], wood);
+      for (const x of [-0.9, 0.9]) for (const z of [-0.5, 0.5]) part(n, box(0.1, 0.75, 0.1), [x, 0.375, z], darken(wood, 0.15));
+      break;
+    }
+    case 'cube':     part(n, box(1.2, 1.2, 1.2), [0, 0.6, 0], col(color, 0x3366e6)); break;
+    case 'sphere':   part(n, sphere(0.7), [0, 0.7, 0], col(color, 0x3366e6)); break;
+    case 'cylinder': part(n, cyl(0.5, 1.4), [0, 0.7, 0], col(color, 0x3366e6)); break;
+    case 'cone':     part(n, cone(0.6, 1.4), [0, 0.7, 0], col(color, 0xf2801a)); break;
+    case 'torus':    part(n, torus(0.3, 0.7), [0, 0.7, 0], col(color, 0xf280b3)); break;
+    case 'capsule':  part(n, new THREE.CapsuleGeometry(0.4, 0.8, 8, 24), [0, 0.8, 0], col(color, 0x33d9e6)); break;
+    default: {
+      let y = 0;
+      const parts = 4 + Math.floor(rand() * 6);
+      for (let i = 0; i < parts; i++) {
+        const c = color ?? new THREE.Color().setHSL(rand(), 0.6, 0.6);
+        const s = randRange(0.3, 0.8);
+        const pos = [randRange(-0.6, 0.6), y + s, randRange(-0.6, 0.6)];
+        const geo = [box(s * 1.5, s * 1.5, s * 1.5), sphere(s), cyl(s * 0.6, s * 2), cone(s, s * 2)][Math.floor(rand() * 4)];
+        part(n, geo, pos, c, [randRange(-30, 30), randRange(0, 360), randRange(-30, 30)]);
+        y += s * 1.2;
+      }
+    }
   }
 }
 
-function showStats() {
-  const recent = times.slice(-5);
-  document.getElementById('last').textContent = times.length ? times.at(-1) + ' ms' : '–';
-  document.getElementById('avg').textContent = recent.length ? Math.round(recent.reduce((a, b) => a + b) / recent.length) + ' ms' : '–';
-  document.getElementById('best').textContent = best ? best + ' ms' : '–';
-  document.getElementById('history').textContent = recent.length ? 'Recent: ' + recent.join(' · ') : '';
+// ---------------------------------------------------------------- .obj export
+function saveObj() {
+  const base = 'model_ai_' + (lastPrompt.replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'model');
+  const obj = [`mtllib ${base}.mtl`], mtl = [];
+  // Export at full size even if the pop-in animation is still running.
+  for (const p of pops) p.obj.scale.setScalar(p.size);
+  modelRoot.updateMatrixWorld(true);
+  let offset = 1, idx = 0;
+  modelRoot.traverse(m => {
+    if (!m.isMesh) return;
+    const g = m.geometry, pos = g.attributes.position, nor = g.attributes.normal;
+    const normalMatrix = new THREE.Matrix3().getNormalMatrix(m.matrixWorld);
+    const v = new THREE.Vector3(), c = m.material.color.getRGB({}, THREE.SRGBColorSpace);
+    mtl.push(`newmtl m${idx}`, `Kd ${c.r.toFixed(4)} ${c.g.toFixed(4)} ${c.b.toFixed(4)}`);
+    obj.push(`o part${idx}`, `usemtl m${idx}`);
+    for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld); obj.push(`v ${v.x.toFixed(5)} ${v.y.toFixed(5)} ${v.z.toFixed(5)}`); }
+    for (let i = 0; i < nor.count; i++) { v.fromBufferAttribute(nor, i).applyMatrix3(normalMatrix).normalize(); obj.push(`vn ${v.x.toFixed(5)} ${v.y.toFixed(5)} ${v.z.toFixed(5)}`); }
+    const index = g.index ? g.index.array : [...Array(pos.count).keys()];
+    for (let i = 0; i < index.length; i += 3) {
+      const [a, b, d] = [index[i] + offset, index[i + 1] + offset, index[i + 2] + offset];
+      obj.push(`f ${a}//${a} ${b}//${b} ${d}//${d}`);
+    }
+    offset += pos.count; idx++;
+  });
+  download(base + '.obj', obj.join('\n'));
+  download(base + '.mtl', mtl.join('\n'));
+  statusEl.textContent = `Saved ${base}.obj (+ .mtl) — open it in Blender or 3D Viewer`;
 }
 
-box.addEventListener('pointerdown', press);
-document.addEventListener('keydown', e => { if (e.code === 'Space' && !e.repeat) { e.preventDefault(); press(); } });
-document.getElementById('reset').onclick = () => { best = null; try { localStorage.removeItem('reflex-best'); } catch (e) {} showStats(); };
+function download(name, text) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type:'text/plain' }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ---------------------------------------------------------------- UI
+$('go').onclick = () => generate(promptEl.value);
+promptEl.addEventListener('keydown', e => { if (e.key === 'Enter') generate(promptEl.value); });
+$('random').onclick = () => { const p = EXAMPLES[Math.floor(Math.random() * EXAMPLES.length)]; promptEl.value = p; generate(p); };
+$('save').onclick = saveObj;
+generate('red car');
 
 // Install as an app (works when hosted on GitHub Pages)
 let installPrompt = null;
-const installBtn = document.getElementById('install');
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; installBtn.hidden = false; });
+const installBtn = $('install');
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; installBtn.hidden = false; });
 installBtn.onclick = async () => { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; installBtn.hidden = true; };
 if (location.protocol.startsWith('http')) {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 } else {
-  document.getElementById('download').hidden = true; // already downloaded
+  $('download').hidden = true; // already downloaded
 }
 </script>
 </body>

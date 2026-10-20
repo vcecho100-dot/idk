@@ -1,4 +1,4 @@
-name: Build Reflex.exe
+name: Build ModelAI.exe
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: Reflex (latest)
-          body: Download **Reflex.exe** below and double-click it to play. If Windows says "protected your PC", click More info → Run anyway.
-          files: dist/Reflex.exe
+          name: Model AI (latest)
+          body: Download **ModelAI.exe** below and double-click it to run. If Windows says "protected your PC", click More info → Run anyway.
+          files: dist/ModelAI.exe
           make_latest: true

@@ -1,8 +1,8 @@
 {
-  "name": "reflex",
-  "productName": "Reflex",
+  "name": "model-ai",
+  "productName": "Model AI",
   "version": "1.0.0",
-  "description": "A tiny reaction-time game.",
+  "description": "Type a description, get a simple 3D model.",
   "author": "vcecho100-dot",
   "license": "MIT",
   "main": "main.js",
@@ -10,15 +10,18 @@
     "start": "electron .",
     "build": "electron-builder --win portable"
   },
+  "dependencies": {
+    "three": "0.159.0"
+  },
   "devDependencies": {
     "electron": "33.2.1",
     "electron-builder": "25.1.8"
   },
   "build": {
-    "appId": "com.vcecho100.reflex",
-    "files": ["main.js", "index.html", "icon.svg", "build/icon.png"],
+    "appId": "com.vcecho100.modelai",
+    "files": ["main.js", "index.html", "icon.svg", "build/icon.png", "node_modules/three/build/three.min.js"],
     "win": { "icon": "build/icon.png" },
-    "portable": { "artifactName": "Reflex.exe" },
+    "portable": { "artifactName": "ModelAI.exe" },
     "directories": { "output": "dist" }
   }
 }

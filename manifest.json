@@ -1,7 +1,7 @@
 {
-  "name": "Reflex",
-  "short_name": "Reflex",
-  "description": "A tiny reaction-time game.",
+  "name": "Model AI",
+  "short_name": "Model AI",
+  "description": "Type a description, get a simple 3D model.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

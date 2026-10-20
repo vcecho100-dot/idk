@@ -1,11 +1,15 @@
-// Caches the game so the installed app works offline.
-const CACHE = 'reflex-v1';
+// Caches the app (and the 3D engine from the CDN) so the installed app works offline.
+const CACHE = 'model-ai-v1';
 const FILES = ['./', 'index.html', 'manifest.json', 'icon.svg'];
 
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))));
 self.addEventListener('activate', e => e.waitUntil(
   caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
 ));
-self.addEventListener('fetch', e => e.respondWith(
-  fetch(e.request).catch(() => caches.match(e.request))
-));
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(fetch(e.request).then(res => {
+    if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+    return res;
+  }).catch(() => caches.match(e.request)));
+});

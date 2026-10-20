@@ -11,9 +11,15 @@ function RoundRect($x, $y, $w, $h, $r) {
   $p.AddArc($x + $w - $d, $y + $h - $d, $d, $d, 0, 90); $p.AddArc($x, $y + $h - $d, $d, $d, 90, 90)
   $p.CloseFigure(); $p
 }
-$g.FillPath((New-Object System.Drawing.SolidBrush ([System.Drawing.ColorTranslator]::FromHtml('#0f1117'))), (RoundRect 0 0 256 256 55))
-$g.FillPath((New-Object System.Drawing.SolidBrush ([System.Drawing.ColorTranslator]::FromHtml('#30a46c'))), (RoundRect 28 28 200 200 40))
-$pts = @(@(290, 90), @(150, 290), @(250, 290), @(220, 422), @(362, 216), @(262, 216)) | ForEach-Object { New-Object System.Drawing.PointF ($_[0] * $s), ($_[1] * $s) }
-$g.FillPolygon([System.Drawing.Brushes]::White, [System.Drawing.PointF[]]$pts)
+function Brush($hex) { New-Object System.Drawing.SolidBrush ([System.Drawing.ColorTranslator]::FromHtml($hex)) }
+function Face($hex, $points) {
+  $pts = $points | ForEach-Object { New-Object System.Drawing.PointF ($_[0] * $s), ($_[1] * $s) }
+  $g.FillPolygon((Brush $hex), [System.Drawing.PointF[]]$pts)
+}
+$g.FillPath((Brush '#0f1117'), (RoundRect 0 0 256 256 55))
+$g.FillPath((Brush '#6e56cf'), (RoundRect 28 28 200 200 40))
+Face '#ffffff' @(@(256, 120), @(376, 190), @(256, 260), @(136, 190))
+Face '#d9d4ff' @(@(136, 190), @(256, 260), @(256, 400), @(136, 330))
+Face '#b3a8ff' @(@(256, 260), @(376, 190), @(376, 330), @(256, 400))
 $bmp.Save("$PSScriptRoot\build\icon.png", [System.Drawing.Imaging.ImageFormat]::Png)
 $g.Dispose(); $bmp.Dispose()
