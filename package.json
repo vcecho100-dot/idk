@@ -2,7 +2,7 @@
   "name": "model-ai",
   "productName": "Model AI",
   "version": "1.0.0",
-  "description": "Type a description, get a simple 3D model.",
+  "description": "Paste in a picture, get a 3D model.",
   "author": "vcecho100-dot",
   "license": "MIT",
   "main": "main.js",

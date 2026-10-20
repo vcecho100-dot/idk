@@ -1,7 +1,7 @@
 {
   "name": "Model AI",
   "short_name": "Model AI",
-  "description": "Type a description, get a simple 3D model.",
+  "description": "Paste in a picture, get a 3D model.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
