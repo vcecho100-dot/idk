@@ -17,6 +17,9 @@ If you click too early, it counts as a false start. Your best time is saved in y
 | < 400 ms | 🙂 Average |
 | 400+ ms | 🐢 Sleepy |
 
-## Run it
-- Download `index.html` and double-click it, **or**
-- Turn on GitHub Pages: repo **Settings → Pages → Branch: `main` / root → Save**, then open `https://vcecho100-dot.github.io/idk/`.
+## ⬇ Download
+
+**[Download Reflex (.zip)](https://github.com/vcecho100-dot/idk/archive/refs/heads/main.zip)**, unzip it, and double-click `index.html`. Works offline.
+
+## 📲 Install as an app
+Open **https://vcecho100-dot.github.io/idk/** in Chrome or Edge and click **⬇ Install app** (or the install icon in the address bar). On a phone, use **Add to Home screen**. It gets its own icon and works offline.
