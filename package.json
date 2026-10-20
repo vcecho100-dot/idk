@@ -1,0 +1,24 @@
+{
+  "name": "reflex",
+  "productName": "Reflex",
+  "version": "1.0.0",
+  "description": "A tiny reaction-time game.",
+  "author": "vcecho100-dot",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.vcecho100.reflex",
+    "files": ["main.js", "index.html", "icon.svg", "build/icon.png"],
+    "win": { "icon": "build/icon.png" },
+    "portable": { "artifactName": "Reflex.exe" },
+    "directories": { "output": "dist" }
+  }
+}

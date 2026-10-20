@@ -17,9 +17,13 @@ If you click too early, it counts as a false start. Your best time is saved in y
 | < 400 ms | 🙂 Average |
 | 400+ ms | 🐢 Sleepy |
 
-## ⬇ Download
+## ⬇ Download (Windows app)
 
-**[Download Reflex (.zip)](https://github.com/vcecho100-dot/idk/archive/refs/heads/main.zip)**, unzip it, and double-click `index.html`. Works offline.
+**[Download Reflex.exe](https://github.com/vcecho100-dot/idk/releases/latest/download/Reflex.exe)**, then double-click it to play. No install needed.
+
+If Windows says "Windows protected your PC", click **More info → Run anyway** (the app isn't code-signed).
+
+Prefer the browser version? **[Download the .zip](https://github.com/vcecho100-dot/idk/archive/refs/heads/main.zip)**, unzip it, and open `index.html`.
 
 ## 📲 Install as an app
 Open **https://vcecho100-dot.github.io/idk/** in Chrome or Edge and click **⬇ Install app** (or the install icon in the address bar). On a phone, use **Add to Home screen**. It gets its own icon and works offline.
