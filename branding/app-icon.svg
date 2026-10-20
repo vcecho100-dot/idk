@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="tile" x1="512" y1="48" x2="512" y2="976" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1B1B21"/>
+      <stop offset="1" stop-color="#09090B"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="512" cy="560" r="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B5CF6" stop-opacity=".42"/>
+      <stop offset=".55" stop-color="#22D3EE" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="512" y1="48" x2="512" y2="976" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".04"/>
+    </linearGradient>
+    <linearGradient id="g" x1="10" y1="58" x2="54" y2="6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <rect x="48" y="48" width="928" height="928" rx="216" fill="url(#tile)"/>
+  <rect x="48" y="48" width="928" height="928" rx="216" fill="url(#glow)"/>
+  <rect x="50" y="50" width="924" height="924" rx="214" stroke="url(#rim)" stroke-width="4"/>
+  <g transform="translate(192 192) scale(10)">
+    <path d="M32 6 L54 18.5 L32 31 Z" fill="url(#g)"/>
+    <path d="M32 31 L54 18.5 L54 45.5 L32 58 Z" fill="url(#g)"/>
+    <path d="M32 31 L54 18.5 L54 45.5 L32 58 Z" fill="#000" fill-opacity=".28"/>
+    <path d="M32 6 L54 18.5 L32 31 Z" fill="#fff" fill-opacity=".14"/>
+    <g stroke="url(#g)" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M32 6 L10 18.5 L32 31 M10 18.5 L10 45.5 L32 58" stroke-width="2.6"/>
+      <path d="M10 18.5 L32 58" stroke-width="1.5" stroke-opacity=".55"/>
+    </g>
+    <g fill="url(#g)">
+      <circle cx="10" cy="18.5" r="2.8"/>
+      <circle cx="10" cy="45.5" r="2.8"/>
+      <circle cx="32" cy="6" r="2.8"/>
+      <rect x="25.4" y="34.6" width="3.6" height="3.6" rx=".6"/>
+      <rect x="21.6" y="41.4" width="2.8" height="2.8" rx=".5" fill-opacity=".7"/>
+      <rect x="26.6" y="46.2" width="2.4" height="2.4" rx=".4" fill-opacity=".45"/>
+    </g>
+  </g>
+</svg>

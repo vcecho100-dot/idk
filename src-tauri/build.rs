@@ -1,0 +1,62 @@
+/// Every `#[tauri::command]` must be listed here. Tauri then generates an
+/// `allow-<name>` permission for each, and only commands granted through
+/// `permissions/app-commands.toml` are callable from the webview.
+const COMMANDS: &[&str] = &[
+    "app_ready",
+    "set_window_appearance",
+    "get_settings",
+    "update_settings",
+    "system_info",
+    "open_external",
+    "reset_app_data",
+    "list_providers",
+    "set_provider_key",
+    "clear_provider_key",
+    "test_provider",
+    "provider_usage",
+    "probe_local_server",
+    "check_for_updates",
+    "install_update",
+    "generate",
+    "refine",
+    "retexture",
+    "rig",
+    "list_jobs",
+    "cancel_job",
+    "retry_job",
+    "dismiss_job",
+    "clear_finished_jobs",
+    "estimate_cost",
+    "list_projects",
+    "get_project",
+    "rename_project",
+    "set_favorite",
+    "set_tags",
+    "duplicate_project",
+    "delete_project",
+    "delete_version",
+    "set_current_version",
+    "create_version",
+    "save_thumbnail",
+    "pick_images",
+    "stage_image_bytes",
+    "import_model",
+    "open_project_file",
+    "save_project_file",
+    "export_files",
+    "save_media",
+    "send_to_godot",
+    "pick_godot_project",
+    "pick_blender_path",
+    "pick_output_dir",
+    "detect_blender",
+    "open_in_blender",
+    "reveal",
+];
+
+fn main() {
+    tauri_build::try_build(
+        tauri_build::Attributes::new().app_manifest(tauri_build::AppManifest::new().commands(COMMANDS)),
+    )
+    .expect("failed to run tauri-build");
+}

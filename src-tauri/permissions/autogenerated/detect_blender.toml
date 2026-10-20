@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-detect-blender"
+description = "Enables the detect_blender command without any pre-configured scope."
+commands.allow = ["detect_blender"]
+
+[[permission]]
+identifier = "deny-detect-blender"
+description = "Denies the detect_blender command without any pre-configured scope."
+commands.deny = ["detect_blender"]

@@ -1,0 +1,189 @@
+/*
+ * Shift3D design tokens. Every color, radius, shadow and duration used by the
+ * UI is defined here. Components only reference these via Tailwind utilities
+ * (bg-panel, text-muted, border-border, ...) or var(--token).
+ */
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #09090b;
+  --bg-shell: #09090b;
+  --panel: #111113;
+  --panel-raised: #18181b;
+  --panel-hover: rgb(255 255 255 / 0.045);
+  --panel-active: rgb(255 255 255 / 0.08);
+  --field: rgb(255 255 255 / 0.03);
+  --field-hover: rgb(255 255 255 / 0.05);
+  --border: rgb(255 255 255 / 0.08);
+  --border-strong: rgb(255 255 255 / 0.14);
+  --divider: rgb(255 255 255 / 0.06);
+
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-subtle: #71717a;
+  --text-disabled: #52525b;
+  --text-inverse: #09090b;
+
+  --overlay: rgb(5 5 7 / 0.62);
+  --scrim: rgb(9 9 11 / 0.72);
+  --skeleton: rgb(255 255 255 / 0.05);
+  --skeleton-shine: rgb(255 255 255 / 0.07);
+  --scrollbar: rgb(255 255 255 / 0.1);
+  --scrollbar-hover: rgb(255 255 255 / 0.18);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 10px 28px -8px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 28px 72px -16px rgb(0 0 0 / 0.7), 0 10px 22px -10px rgb(0 0 0 / 0.5);
+  --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 0.04);
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #f43f5e;
+  --info: #38bdf8;
+
+  /* Viewport */
+  --viewport-top: #16161b;
+  --viewport-bottom: #050506;
+  --grid-minor: #1d1d22;
+  --grid-major: #2c2c34;
+  --checker-a: #1a1a1e;
+  --checker-b: #141417;
+  --clay: #c9c9cf;
+  --wire: #e4e4e7;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f6f6f7;
+  --bg-shell: #f6f6f7;
+  --panel: #ffffff;
+  --panel-raised: #ffffff;
+  --panel-hover: rgb(9 9 11 / 0.04);
+  --panel-active: rgb(9 9 11 / 0.07);
+  --field: rgb(9 9 11 / 0.025);
+  --field-hover: rgb(9 9 11 / 0.045);
+  --border: rgb(9 9 11 / 0.09);
+  --border-strong: rgb(9 9 11 / 0.16);
+  --divider: rgb(9 9 11 / 0.06);
+
+  --text: #09090b;
+  --text-muted: #52525b;
+  --text-subtle: #71717a;
+  --text-disabled: #a1a1aa;
+  --text-inverse: #fafafa;
+
+  --overlay: rgb(9 9 11 / 0.32);
+  --scrim: rgb(246 246 247 / 0.78);
+  --skeleton: rgb(9 9 11 / 0.05);
+  --skeleton-shine: rgb(9 9 11 / 0.08);
+  --scrollbar: rgb(9 9 11 / 0.14);
+  --scrollbar-hover: rgb(9 9 11 / 0.24);
+
+  --shadow-sm: 0 1px 2px rgb(9 9 11 / 0.08);
+  --shadow-md: 0 10px 28px -10px rgb(9 9 11 / 0.18), 0 2px 6px -2px rgb(9 9 11 / 0.08);
+  --shadow-lg: 0 28px 72px -18px rgb(9 9 11 / 0.28), 0 10px 22px -12px rgb(9 9 11 / 0.14);
+  --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 0.6);
+
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #e11d48;
+  --info: #0284c7;
+
+  --viewport-top: #f3f3f6;
+  --viewport-bottom: #d9d9e0;
+  --grid-minor: #d4d4da;
+  --grid-major: #b9b9c2;
+  --checker-a: #e7e7ec;
+  --checker-b: #dedee4;
+  --clay: #b8b8c0;
+  --wire: #27272a;
+}
+
+/* Windows 11 Mica: the native backdrop shows through the shell and panels. */
+:root[data-mica="on"][data-theme="dark"] {
+  --bg-shell: rgb(9 9 11 / 0.7);
+  --panel: rgb(17 17 19 / 0.78);
+}
+:root[data-mica="on"][data-theme="light"] {
+  --bg-shell: rgb(246 246 247 / 0.72);
+  --panel: rgb(255 255 255 / 0.8);
+}
+
+/* Accent palettes. The gradient is used sparingly: primary button, progress, active tool, focus. */
+:root,
+:root[data-accent="aurora"] {
+  --accent-from: #8b5cf6;
+  --accent-to: #22d3ee;
+}
+:root[data-accent="sunset"] {
+  --accent-from: #f97316;
+  --accent-to: #ec4899;
+}
+:root[data-accent="lagoon"] {
+  --accent-from: #10b981;
+  --accent-to: #22d3ee;
+}
+:root[data-accent="orchid"] {
+  --accent-from: #d946ef;
+  --accent-to: #6366f1;
+}
+:root[data-accent="ocean"] {
+  --accent-from: #3b82f6;
+  --accent-to: #2dd4bf;
+}
+:root[data-accent="ember"] {
+  --accent-from: #ef4444;
+  --accent-to: #f59e0b;
+}
+
+:root {
+  /* The brand mark keeps its identity regardless of the chosen accent. */
+  --brand-from: #8b5cf6;
+  --brand-to: #22d3ee;
+  --mark-shade: rgb(0 0 0 / 0.28);
+  --mark-highlight: rgb(255 255 255 / 0.14);
+
+  --accent: color-mix(in oklab, var(--accent-from) 62%, var(--accent-to));
+  --accent-gradient: linear-gradient(120deg, var(--accent-from), var(--accent-to));
+  --accent-soft: color-mix(in oklab, var(--accent) 15%, transparent);
+  --accent-softer: color-mix(in oklab, var(--accent) 8%, transparent);
+  --accent-border: color-mix(in oklab, var(--accent) 45%, transparent);
+  --accent-glow: color-mix(in oklab, var(--accent-from) 38%, transparent);
+  --on-accent: #ffffff;
+  --ring: color-mix(in oklab, var(--accent) 80%, transparent);
+
+  --success-soft: color-mix(in oklab, var(--success) 14%, transparent);
+  --warning-soft: color-mix(in oklab, var(--warning) 14%, transparent);
+  --danger-soft: color-mix(in oklab, var(--danger) 14%, transparent);
+  --info-soft: color-mix(in oklab, var(--info) 14%, transparent);
+
+  --radius-panel: 12px;
+  --radius-control: 8px;
+  --radius-chip: 6px;
+
+  --titlebar-h: 40px;
+  --window-close: #c42b1c;
+  --window-close-fg: #ffffff;
+
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 250ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 1ms;
+    --duration-base: 1ms;
+    --duration-slow: 1ms;
+  }
+}
+:root[data-reduced-motion="on"] {
+  --duration-fast: 1ms;
+  --duration-base: 1ms;
+  --duration-slow: 1ms;
+}

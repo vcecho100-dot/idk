@@ -1,3 +1,36 @@
+# Dependencies
 node_modules/
+
+# Builds
 dist/
-build/
+dist-web/
+coverage/
+*.tsbuildinfo
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Secrets — never commit signing keys, certificates or env files
+*.key
+*.key.pub
+*.pem
+*.pfx
+*.p12
+*.cer
+.env
+.env.*
+!.env.example
+tauri-signing*
+updater-key*
+
+# Local tooling
+.claude/
+.gdignore
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

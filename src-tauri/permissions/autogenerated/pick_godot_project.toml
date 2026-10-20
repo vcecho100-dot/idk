@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-pick-godot-project"
+description = "Enables the pick_godot_project command without any pre-configured scope."
+commands.allow = ["pick_godot_project"]
+
+[[permission]]
+identifier = "deny-pick-godot-project"
+description = "Denies the pick_godot_project command without any pre-configured scope."
+commands.deny = ["pick_godot_project"]

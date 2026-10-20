@@ -1,0 +1,13 @@
+# cargo-audit configuration (CI fails on any vulnerability not listed here).
+
+[advisories]
+ignore = [
+  # zip < 9: `extract()` mishandles symlinks / Unix permissions. Only reachable through
+  # tauri-plugin-updater 2.x (zip 4.6), which unpacks update payloads *after* verifying
+  # Shift3D's minisign signature, on Windows (no Unix permissions or symlinks apply).
+  # Shift3D's own archive code uses zip 9 and never calls `extract()`.
+  # Remove these once tauri-plugin-updater depends on zip >= 9.
+  "RUSTSEC-2026-0367",
+  "RUSTSEC-2026-0368",
+  "RUSTSEC-2026-0369",
+]

@@ -1,0 +1,145 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Geist Variable", "Segoe UI Variable", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+
+.splash {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  isolation: isolate;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 55% at 50% 38%, var(--accent-glow), transparent 70%),
+    radial-gradient(40% 40% at 70% 80%, color-mix(in oklab, var(--accent-to) 14%, transparent), transparent 70%);
+  opacity: 0;
+  animation: fade 900ms var(--ease-out) 80ms forwards;
+}
+
+.mark {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 10px;
+  overflow: visible;
+}
+.stop-from {
+  stop-color: var(--accent-from);
+}
+.stop-to {
+  stop-color: var(--accent-to);
+}
+
+.edge {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 620ms var(--ease-out) forwards;
+}
+.dots circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  animation: pop 320ms var(--ease-out) 380ms forwards;
+}
+.solid {
+  clip-path: inset(0 0 0 100%);
+  animation: sweep 560ms var(--ease-out) 300ms forwards;
+}
+.vox {
+  opacity: 0;
+  animation: drift 600ms var(--ease-out) forwards;
+}
+.v1 { animation-delay: 620ms; }
+.v2 { animation-delay: 700ms; }
+.v3 { animation-delay: 780ms; }
+
+.wordmark {
+  margin: 0;
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: rise 500ms var(--ease-out) 420ms forwards;
+}
+.wordmark span {
+  background-image: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.tagline {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0;
+  animation: fade 500ms var(--ease-out) 560ms forwards;
+}
+
+.bar {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  width: 120px;
+  height: 2px;
+  margin-left: -60px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--border);
+  opacity: 0;
+  animation: fade 400ms var(--ease-out) 700ms forwards;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background-image: var(--accent-gradient);
+  transform-origin: left;
+  animation: indeterminate 1.3s var(--ease-in-out) infinite;
+}
+
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { to { transform: scale(1); } }
+@keyframes sweep { to { clip-path: inset(0 0 0 0); } }
+@keyframes drift {
+  from { opacity: 0; transform: translate(4px, -3px); }
+  to { opacity: 1; transform: translate(0, 0); }
+}
+@keyframes rise { to { opacity: 1; transform: translateY(0); } }
+@keyframes fade { to { opacity: 1; } }
+@keyframes indeterminate {
+  from { transform: translateX(-100%) scaleX(0.45); }
+  to { transform: translateX(230%) scaleX(0.45); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+:root[data-reduced-motion="on"] *,
+:root[data-reduced-motion="on"] *::before,
+:root[data-reduced-motion="on"] *::after {
+  animation-duration: 1ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+}

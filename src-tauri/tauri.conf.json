@@ -1,0 +1,139 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Shift3D",
+  "version": "1.0.0",
+  "identifier": "app.shift3d.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Shift3D",
+        "url": "index.html",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 640,
+        "center": true,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "visible": false,
+        "dragDropEnabled": true,
+        "windowEffects": { "effects": ["mica"] }
+      },
+      {
+        "label": "splash",
+        "title": "Shift3D",
+        "url": "splash.html",
+        "width": 440,
+        "height": 300,
+        "center": true,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "decorations": false,
+        "shadow": true,
+        "skipTaskbar": false,
+        "focus": true,
+        "dragDropEnabled": false
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self' 'wasm-unsafe-eval'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' blob: data: s3d: http://s3d.localhost",
+        "font-src": "'self'",
+        "media-src": "'self' blob:",
+        "worker-src": "'self' blob:",
+        "connect-src": "'self' ipc: http://ipc.localhost blob: data: s3d: http://s3d.localhost",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "form-action": "'none'",
+        "frame-src": "'none'",
+        "frame-ancestors": "'none'"
+      },
+      "devCsp": {
+        "default-src": "'self'",
+        "script-src": "'self' 'wasm-unsafe-eval' 'unsafe-inline' http://localhost:1420",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' blob: data: s3d: http://s3d.localhost",
+        "font-src": "'self'",
+        "media-src": "'self' blob:",
+        "worker-src": "'self' blob:",
+        "connect-src": "'self' ipc: http://ipc.localhost blob: data: s3d: http://s3d.localhost ws://localhost:1420 http://localhost:1420",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "form-action": "'none'",
+        "frame-src": "'none'",
+        "frame-ancestors": "'none'"
+      },
+      "dangerousDisableAssetCspModification": ["style-src"],
+      "freezePrototype": true
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZGNjcxNzkzM0E5NDYxRDkKUldUWllaUTZreGRuLzdDZEVhbVBVMkoxbzdTSXo3OExzaU5kM0xTdGpzRlVsc3YxUjhZNVo2eVUK",
+      "endpoints": ["https://github.com/vcecho100-dot/idk/releases/latest/download/latest.json"],
+      "windows": { "installMode": "passive" }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "createUpdaterArtifacts": true,
+    "publisher": "Shift3D",
+    "copyright": "Copyright © 2026 Shift3D contributors. MIT License.",
+    "category": "GraphicsAndDesign",
+    "shortDescription": "Shift ideas into 3D.",
+    "longDescription": "Shift3D turns text and images into textured, game-ready 3D models with AI — then refine, retexture, optimize and export them to Godot, Unity, Unreal or Blender.",
+    "homepage": "https://github.com/vcecho100-dot/idk",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": ["shift3d"],
+        "name": "Shift3D Project",
+        "description": "Shift3D project (all versions and metadata)",
+        "role": "Editor",
+        "mimeType": "application/x-shift3d"
+      },
+      {
+        "ext": ["glb"],
+        "name": "glTF Binary Model",
+        "description": "glTF 2.0 binary 3D model",
+        "role": "Viewer",
+        "mimeType": "model/gltf-binary"
+      },
+      {
+        "ext": ["gltf"],
+        "name": "glTF Model",
+        "description": "glTF 2.0 3D model",
+        "role": "Viewer",
+        "mimeType": "model/gltf+json"
+      }
+    ],
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper" },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "icons/icon.ico",
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-retexture"
+description = "Enables the retexture command without any pre-configured scope."
+commands.allow = ["retexture"]
+
+[[permission]]
+identifier = "deny-retexture"
+description = "Denies the retexture command without any pre-configured scope."
+commands.deny = ["retexture"]
