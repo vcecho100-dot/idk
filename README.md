@@ -19,7 +19,15 @@
 
 It works fully **offline** in demo mode, runs on **your own GPU** (even a 6 GB laptop card), uses **free Hugging Face Spaces** when you have no GPU or key, and plugs into **Tripo**, **Meshy** and **fal.ai** when you want the best quality.
 
-> **Status:** in active development toward v1.0. The generation engine, offline demo, free web generation and local-GPU support are in place; the Studio editor, Library and Settings screens are being built now. See [ROADMAP.md](ROADMAP.md) for exactly what's done.
+> **Status:** in active development toward v1.0. The generation engine, offline demo, free web generation, local-GPU support, Studio, Library and Settings work today; export presets, local mesh tools and the command palette are next. See [ROADMAP.md](ROADMAP.md) for exactly what's done.
+
+## Install
+
+1. Open the [latest release](https://github.com/vcecho100-dot/idk/releases/latest) and download **`Shift3D_x.y.z_x64-setup.exe`** (or the `.msi` if your IT prefers it).
+2. Run it. It installs for your user only, so no admin rights are needed.
+3. Windows SmartScreen may say *"Windows protected your PC"* because the installer isn't code-signed yet. Click **More info → Run anyway**. You can check the file against `SHA256SUMS.txt` on the release page.
+
+Or skip installing and [use it in your browser](https://vcecho100-dot.github.io/idk/).
 
 <!-- Hero GIF: docs/hero.gif (recorded from the app's own turntable export once the Studio ships) -->
 

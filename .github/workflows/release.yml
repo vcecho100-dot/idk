@@ -1,0 +1,62 @@
+name: Release
+
+# Run from the Actions tab ("Run workflow", e.g. v1.0.1) to build the Windows
+# installers and publish them as a GitHub release. Bump the version in
+# package.json and src-tauri/tauri.conf.json first. Needs the
+# TAURI_SIGNING_PRIVATE_KEY secret (and TAURI_SIGNING_PRIVATE_KEY_PASSWORD if
+# the key has one) so the in-app updater can verify the download.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, e.g. v1.0.1
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ inputs.tag }}
+          releaseName: Shift3D ${{ inputs.tag }}
+          releaseBody: |
+            **Download `Shift3D_*_x64-setup.exe` below** and run it. No admin rights needed.
+
+            Windows SmartScreen may say "Windows protected your PC" because the installer isn't code-signed yet: click **More info → Run anyway**.
+
+            Prefer not to install anything? Use the web version: https://vcecho100-dot.github.io/idk/
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true
+
+      - name: Checksums
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd src-tauri/target/release/bundle
+          sha256sum nsis/*.exe msi/*.msi > SHA256SUMS.txt
+          gh release upload "${{ inputs.tag }}" SHA256SUMS.txt --clobber -R "${{ github.repository }}"
