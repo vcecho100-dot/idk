@@ -530,31 +530,27 @@ fn validate_spec(g: &GenerateSpec) -> AppResult<()> {
     Ok(())
 }
 
-/// "a cute robot dog" → "Cute Robot Dog" (mirrors the frontend helper).
+/// A short project name from a prompt (mirrors the frontend): skips leading articles
+/// and stops at the first linking word. "a fox sitting on its hind legs" → "Fox Sitting".
 pub fn name_from_prompt(prompt: &str, fallback: &str) -> String {
-    const STOP: &[&str] = &["a", "an", "the", "of", "with", "and", "in", "on", "for", "to", "low", "poly"];
-    let words: Vec<String> = prompt
-        .split(|c: char| !(c.is_alphanumeric() || c == '-'))
-        .filter(|w| !w.is_empty())
-        .enumerate()
-        .filter(|(i, w)| *i > 0 || !STOP.contains(&w.to_lowercase().as_str()))
-        .map(|(_, w)| w.to_string())
-        .take(4)
-        .collect();
-    let keep_stops = words.len() <= 2;
-    let name: Vec<String> = words
-        .into_iter()
-        .filter(|w| keep_stops || !STOP.contains(&w.to_lowercase().as_str()))
-        .map(|w| {
-            let lower = w.to_lowercase();
-            let mut c = lower.chars();
-            c.next().map(|f| f.to_uppercase().collect::<String>() + c.as_str()).unwrap_or_default()
-        })
-        .collect();
-    if name.is_empty() {
+    const LEAD: &[&str] = &["a", "an", "the", "some", "one"];
+    const LINK: &[&str] = &["of", "with", "and", "in", "on", "for", "to", "at", "by", "from", "into", "onto", "that", "which", "who", "its", "his", "her", "their", "is", "are", "made"];
+    let words: Vec<&str> = prompt.split(|c: char| !(c.is_alphanumeric() || c == '-')).filter(|w| !w.is_empty()).collect();
+    let mut i = 0;
+    while i < words.len() && LEAD.contains(&words[i].to_lowercase().as_str()) {
+        i += 1;
+    }
+    let mut picked = Vec::new();
+    while i < words.len() && picked.len() < 4 && !LINK.contains(&words[i].to_lowercase().as_str()) {
+        let lower = words[i].to_lowercase();
+        let mut c = lower.chars();
+        picked.push(c.next().map(|f| f.to_uppercase().collect::<String>() + c.as_str()).unwrap_or_default());
+        i += 1;
+    }
+    if picked.is_empty() {
         fallback.to_string()
     } else {
-        name.join(" ")
+        picked.join(" ")
     }
 }
 
@@ -827,7 +823,8 @@ mod tests {
     #[test]
     fn names_from_prompts() {
         assert_eq!(name_from_prompt("a cute robot dog", "x"), "Cute Robot Dog");
-        assert_eq!(name_from_prompt("The sword of fire and ice", "x"), "Sword Fire");
+        assert_eq!(name_from_prompt("The sword of fire and ice", "x"), "Sword");
+        assert_eq!(name_from_prompt("A fox sitting on its hind legs", "x"), "Fox Sitting");
         assert_eq!(name_from_prompt("", "Untitled"), "Untitled");
     }
 

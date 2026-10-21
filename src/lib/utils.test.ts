@@ -27,7 +27,8 @@ describe("formatting", () => {
 describe("prompts", () => {
   it("names projects like the Rust engine", () => {
     expect(nameFromPrompt("a cute robot dog")).toBe("Cute Robot Dog");
-    expect(nameFromPrompt("The sword of fire and ice")).toBe("Sword Fire");
+    expect(nameFromPrompt("The sword of fire and ice")).toBe("Sword");
+    expect(nameFromPrompt("A fox sitting on its hind legs")).toBe("Fox Sitting");
     expect(nameFromPrompt("", "Untitled")).toBe("Untitled");
   });
 

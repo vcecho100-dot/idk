@@ -114,29 +114,40 @@
 
 /* Accent palettes. The gradient is used sparingly: primary button, progress, active tool, focus. */
 :root,
-:root[data-accent="aurora"] {
+[data-accent="aurora"] {
   --accent-from: #8b5cf6;
   --accent-to: #22d3ee;
 }
-:root[data-accent="sunset"] {
+[data-accent="sunset"] {
   --accent-from: #f97316;
   --accent-to: #ec4899;
 }
-:root[data-accent="lagoon"] {
+[data-accent="lagoon"] {
   --accent-from: #10b981;
   --accent-to: #22d3ee;
 }
-:root[data-accent="orchid"] {
+[data-accent="orchid"] {
   --accent-from: #d946ef;
   --accent-to: #6366f1;
 }
-:root[data-accent="ocean"] {
+[data-accent="ocean"] {
   --accent-from: #3b82f6;
   --accent-to: #2dd4bf;
 }
-:root[data-accent="ember"] {
+[data-accent="ember"] {
   --accent-from: #ef4444;
   --accent-to: #f59e0b;
+}
+/* Derived accent values are recomputed wherever an accent is set (e.g. settings swatches). */
+:root,
+[data-accent] {
+  --accent: color-mix(in oklab, var(--accent-from) 62%, var(--accent-to));
+  --accent-gradient: linear-gradient(120deg, var(--accent-from), var(--accent-to));
+  --accent-soft: color-mix(in oklab, var(--accent) 15%, transparent);
+  --accent-softer: color-mix(in oklab, var(--accent) 8%, transparent);
+  --accent-border: color-mix(in oklab, var(--accent) 45%, transparent);
+  --accent-glow: color-mix(in oklab, var(--accent-from) 38%, transparent);
+  --ring: color-mix(in oklab, var(--accent) 80%, transparent);
 }
 
 :root {
@@ -145,15 +156,7 @@
   --brand-to: #22d3ee;
   --mark-shade: rgb(0 0 0 / 0.28);
   --mark-highlight: rgb(255 255 255 / 0.14);
-
-  --accent: color-mix(in oklab, var(--accent-from) 62%, var(--accent-to));
-  --accent-gradient: linear-gradient(120deg, var(--accent-from), var(--accent-to));
-  --accent-soft: color-mix(in oklab, var(--accent) 15%, transparent);
-  --accent-softer: color-mix(in oklab, var(--accent) 8%, transparent);
-  --accent-border: color-mix(in oklab, var(--accent) 45%, transparent);
-  --accent-glow: color-mix(in oklab, var(--accent-from) 38%, transparent);
   --on-accent: #ffffff;
-  --ring: color-mix(in oklab, var(--accent) 80%, transparent);
 
   --success-soft: color-mix(in oklab, var(--success) 14%, transparent);
   --warning-soft: color-mix(in oklab, var(--warning) 14%, transparent);

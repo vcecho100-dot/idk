@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TitleBar } from "@/components/shell/TitleBar";
@@ -17,24 +17,22 @@ const SettingsScreen = lazy(() => import("@/features/settings/SettingsScreen"));
 function Routes() {
   const route = useRoute((s) => s.route);
   const key = route.name === "studio" ? `studio:${route.projectId ?? "new"}` : route.name;
+  // The new screen fades in immediately; the old one is removed at once, so screens never overlap.
   return (
-    <AnimatePresence mode="popLayout" initial={false}>
-      <motion.main
-        key={key}
-        className="relative flex min-h-0 flex-1 flex-col"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-      >
+    <motion.main
+      key={key}
+      className="relative flex min-h-0 flex-1 flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+    >
         <Suspense fallback={<ScreenFallback />}>
           {route.name === "home" && <HomeScreen />}
           {route.name === "studio" && <StudioScreen projectId={route.projectId} />}
           {route.name === "library" && <LibraryScreen />}
           {route.name === "settings" && <SettingsScreen section={route.section ?? "general"} />}
-        </Suspense>
-      </motion.main>
-    </AnimatePresence>
+      </Suspense>
+    </motion.main>
   );
 }
 

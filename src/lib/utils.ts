@@ -74,18 +74,22 @@ export function uid(prefix = ""): string {
   return prefix + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** Title-cases a prompt into a short project name: "a cute robot dog" → "Cute Robot Dog". */
+/**
+ * A short project name from a prompt: skips leading articles and stops at the first
+ * linking word. "a fox sitting on its hind legs" → "Fox Sitting". Mirrors the Rust engine.
+ */
 export function nameFromPrompt(prompt: string, fallback = "Untitled"): string {
-  const stop = new Set(["a", "an", "the", "of", "with", "and", "in", "on", "for", "to", "low", "poly"]);
-  const words = prompt
-    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
-    .split(/\s+/)
-    .filter(Boolean);
-  const picked = words.filter((w, i) => i > 0 || !stop.has(w.toLowerCase())).slice(0, 4);
-  const name = picked
-    .filter((w) => !stop.has(w.toLowerCase()) || picked.length <= 2)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(" ");
+  const lead = new Set(["a", "an", "the", "some", "one"]);
+  const link = new Set(["of", "with", "and", "in", "on", "for", "to", "at", "by", "from", "into", "onto", "that", "which", "who", "its", "his", "her", "their", "is", "are", "made"]);
+  const words = prompt.split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
+  let i = 0;
+  while (i < words.length && lead.has(words[i]!.toLowerCase())) i++;
+  const picked: string[] = [];
+  for (; i < words.length && picked.length < 4; i++) {
+    if (link.has(words[i]!.toLowerCase())) break;
+    picked.push(words[i]!);
+  }
+  const name = picked.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
   return name || fallback;
 }
 
