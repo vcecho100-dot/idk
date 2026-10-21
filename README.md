@@ -4,6 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/vcecho100-dot/idk/releases/latest"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows%2010%2F11-8B5CF6?style=for-the-badge&logo=windows&logoColor=white"></a>
+  <a href="https://vcecho100-dot.github.io/idk/"><img alt="Try it in your browser" src="https://img.shields.io/badge/Try%20it-in%20your%20browser-22D3EE?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -35,7 +36,7 @@ It works fully **offline** in demo mode, runs on **your own GPU** (even a 6 GB l
 - **Viewer** with textured, clay, wireframe, normals, UV-checker and per-map views, six lighting presets, contact shadows, SSAO and bloom *(in progress)*.
 - **Local tools** — stylize (voxel, low-poly, smooth), optimize (decimate, Draco, meshopt), transform, materials *(in progress)*.
 - **Export** to GLB, glTF, OBJ, STL and USDZ with Godot / Unity / Unreal / Blender / 3D-print presets, **Send to Godot** in one click, **Open in Blender**, and turntable MP4/GIF *(in progress)*.
-- **A web demo** of the offline mode that runs entirely in your browser *(GitHub Pages, coming with v1.0)*.
+- **A web version** at [vcecho100-dot.github.io/idk](https://vcecho100-dot.github.io/idk/) — the offline demo running entirely in your browser (no install; models are saved in your browser).
 
 ## Security & privacy
 
