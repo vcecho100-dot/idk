@@ -73,16 +73,16 @@
 - [ ] Live verification against real provider keys (needs your keys — mock + free Space can be tested without)
 
 ## Phase 4 — Studio
-- [ ] Resizable + collapsible left/right panels, bottom version timeline
-- [ ] Create panel: Text / Image / Multi-view tabs
-- [ ] Text: prompt + character count, Enhance prompt, suggestion chips
-- [ ] Image: drag-drop / picker with preview; Multi-view: front/side/back slots
-- [ ] Style cards with preview images (Realistic, Stylized, Cartoon, Low-poly, Voxel, Sculpture)
-- [ ] Advanced: negative prompt, quality, face limit, PBR, seed
-- [ ] Cost estimate before generating; Generate (Ctrl+Enter)
-- [ ] Generate 4 variants → 2x2 picker
-- [ ] Versions: auto thumbnails, click to view, branch from any version, compare any two
-- [ ] Undo/redo (Ctrl+Z / Ctrl+Y) for every edit (zundo)
+- [x] Left/right panels (model panel collapses to a toggle on narrow windows, hidden in focus mode), bottom version timeline — drag-resizing still to do
+- [x] Create panel: Text / Image / Multi-view tabs
+- [x] Text: prompt, Enhance prompt, suggestion chips
+- [x] Image: drag-drop / picker with preview; Multi-view: front/side/back slots
+- [x] Style cards with preview images (Realistic, Stylized, Cartoon, Low-poly, Voxel, Sculpture)
+- [x] Advanced: negative prompt, quality, face limit, PBR, seed
+- [x] Cost estimate before generating; Generate (Ctrl+Enter)
+- [x] Generate 4 variants → 2x2 picker
+- [x] Versions: auto thumbnails, click to view, branch badges, compare any two (right-click)
+- [x] Undo/redo (Ctrl+Z / Ctrl+Y) for version switches and material edits (zundo)
 - [ ] Jobs popover: running/queued with progress, cancel, retry
 
 ## Phase 5 — Tools
