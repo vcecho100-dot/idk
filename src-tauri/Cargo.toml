@@ -1,6 +1,6 @@
 [package]
 name = "shift3d"
-version = "1.0.0"
+version = "1.0.1"
 description = "Shift ideas into 3D."
 authors = ["vcecho100-dot"]
 license = "MIT"

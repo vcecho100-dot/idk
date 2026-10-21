@@ -27,6 +27,7 @@ import {
   type StagedImage,
   type Version,
 } from "../types";
+import { hfGenerate, hfPing } from "./hfspace";
 import { indexedKV, type KV } from "./store";
 import {
   GENERATE_STAGES,
@@ -58,6 +59,10 @@ interface JobSpec {
   variantIndex: number;
   prompt: string;
   animation: AnimationPreset | null;
+  /** Missing on jobs saved before real providers came to the web version. */
+  provider?: ProviderId;
+  imageId?: string | null;
+  seed?: number | null;
 }
 
 interface StoredJob {
@@ -103,7 +108,6 @@ function webProviders(): ProviderInfo[] {
         ["meshy", "Meshy", "Text, image & multi-image to 3D with retexturing.", "https://www.meshy.ai/settings/api", "https://docs.meshy.ai/"],
         ["fal", "fal.ai", "TRELLIS and Hunyuan3D on serverless GPUs.", "https://fal.ai/dashboard/keys", "https://fal.ai/models"],
         ["local", "Local GPU", "Self-hosted Hunyuan3D or TRELLIS — 100% private.", null, null],
-        ["hfspace", "Hugging Face (free)", "Free public Spaces — slower, shared GPUs.", null, null],
       ] as const
     ).map(([id, name, description, dashboardUrl, docsUrl]) => ({
       id,
@@ -113,11 +117,24 @@ function webProviders(): ProviderInfo[] {
       configured: false,
       available: false,
       unavailableReason: desktopOnly,
-      free: id === "local" || id === "hfspace",
+      free: id === "local",
       capabilities: none,
       dashboardUrl,
       docsUrl,
     })),
+    {
+      id: "hfspace",
+      name: "Hugging Face (free)",
+      description: "Real AI generation on free public Spaces (FLUX + Hunyuan3D-2). No account; shared GPUs, so it can take a minute.",
+      requiresKey: false,
+      configured: true,
+      available: true,
+      unavailableReason: null,
+      free: true,
+      capabilities: { ...none, text: true, image: true, seed: true },
+      dashboardUrl: "https://huggingface.co/spaces/tencent/Hunyuan3D-2",
+      docsUrl: "https://huggingface.co/spaces/tencent/Hunyuan3D-2",
+    },
   ];
 }
 
@@ -163,6 +180,12 @@ const MIME: Record<string, string> = {
   gif: "image/gif",
   zip: "application/zip",
 };
+
+function imageMime(b: Uint8Array): string {
+  if (b[0] === 0x89 && b[1] === 0x50) return "image/png";
+  if (b[0] === 0xff && b[1] === 0xd8) return "image/jpeg";
+  return "image/webp";
+}
 
 function isImageBytes(b: Uint8Array): boolean {
   return imageSize(b) !== null;
@@ -352,6 +375,7 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
   }
 
   function startJob(sj: StoredJob): void {
+    if (sj.spec.provider === "hfspace") return startHfJob(sj);
     const total = DURATION[sj.spec.kind] * timeScale * (0.9 + Math.random() * 0.25);
     const started = performance.now();
     sj.job = { ...sj.job, status: "running", progress: 0, stage: STAGES[sj.spec.kind][0]!.label, startedAt: nowIso(), updatedAt: nowIso(), attempts: sj.job.attempts + 1, error: null };
@@ -374,6 +398,77 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
       Math.max(16, 120 * Math.min(1, timeScale * 4)),
     );
     timers.set(sj.job.id, tick);
+  }
+
+  const aborts = new Map<string, AbortController>();
+
+  /** Real generation on Hugging Face. Progress eases toward each step's target while it runs. */
+  function startHfJob(sj: StoredJob): void {
+    const ctrl = new AbortController();
+    aborts.set(sj.job.id, ctrl);
+    let target = 0.02;
+    let stage = "Connecting to Hugging Face";
+    sj.job = { ...sj.job, status: "running", progress: 0.01, stage, startedAt: nowIso(), updatedAt: nowIso(), attempts: sj.job.attempts + 1, error: null };
+    void saveJob(sj);
+    const tick = setInterval(() => {
+      const next = sj.job.progress + (target - sj.job.progress) * 0.04;
+      sj.job = { ...sj.job, progress: Math.min(0.99, next), stage, updatedAt: nowIso() };
+      emitJob(sj.job);
+    }, 250);
+    timers.set(sj.job.id, tick);
+    const { spec, job } = sj;
+    const done = () => {
+      clearInterval(tick);
+      timers.delete(job.id);
+      aborts.delete(job.id);
+    };
+    void (async () => {
+      try {
+        const img = spec.imageId ? staged.get(spec.imageId) : undefined;
+        if (spec.imageId && !img) {
+          throw new BackendError("not_found", "The reference image is gone (images aren't kept after the page reloads).", "Add the image again and generate.");
+        }
+        const result = await hfGenerate(
+          {
+            prompt: spec.prompt,
+            image: img ? { bytes: img.bytes, mime: imageMime(img.bytes), name: img.image.name } : null,
+            quality: spec.quality,
+            seed: (spec.seed ?? Math.floor(Math.random() * 1e7)) + spec.variantIndex,
+          },
+          (p, s) => {
+            // Each reported step jumps to its start, then creeps toward the next one.
+            sj.job = { ...sj.job, progress: Math.max(sj.job.progress, p), stage: s };
+            target = Math.min(0.97, p + (p < 0.2 ? 0.16 : p < 0.5 ? 0.26 : 0.3));
+            stage = s;
+            emitJob(sj.job);
+          },
+          ctrl.signal,
+        );
+        done();
+        if (jobs.get(job.id)?.job.status === "canceled") return;
+        const variants = job.variantGroup !== null;
+        const version = await addVersion(
+          {
+            projectId: job.projectId,
+            parentId: job.parentVersionId,
+            kind: "generate",
+            label: variants ? `Variant ${spec.variantIndex + 1}` : "Generated",
+            params: { prompt: spec.prompt, quality: spec.quality, hfspace: "tencent/Hunyuan3D-2" },
+            stats: null,
+          },
+          result.glb,
+          { provider: "hfspace", variantGroup: job.variantGroup, variantIndex: job.variantIndex, makeCurrent: !variants || spec.variantIndex === 0 },
+        );
+        sj.job = { ...sj.job, status: "succeeded", progress: 1, stage: "Done", resultVersionId: version.id, finishedAt: nowIso(), updatedAt: nowIso() };
+      } catch (err) {
+        done();
+        if (jobs.get(job.id)?.job.status === "canceled") return;
+        const e = BackendError.from(err);
+        sj.job = { ...sj.job, status: "failed", stage: "Failed", error: { code: e.code, message: e.message, hint: e.hint }, finishedAt: nowIso(), updatedAt: nowIso() };
+      }
+      await saveJob(sj);
+      pump();
+    })();
   }
 
   async function finishJob(sj: StoredJob): Promise<void> {
@@ -481,7 +576,7 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
       id: uid("j_"),
       projectId,
       kind: spec.kind,
-      provider: "mock",
+      provider: spec.provider ?? "mock",
       status: "queued",
       progress: 0,
       stage: "Waiting in queue",
@@ -503,7 +598,10 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
     return job.id;
   }
 
-  function requireMock(provider: ProviderId): void {
+  function requireMock(provider: ProviderId, action = "do this"): void {
+    if (provider === "hfspace") {
+      throw new BackendError("unsupported", `The free Hugging Face Spaces can't ${action}.`, "Use the offline demo here, or Tripo / Meshy in the desktop app.");
+    }
     if (provider !== "mock") throw unsupported("Cloud and local providers are");
   }
 
@@ -697,32 +795,42 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
     },
     testProvider: async (provider) => {
       if (provider === "mock") return { ok: true, latencyMs: 0, message: "The offline demo is always available.", balance: null };
+      if (provider === "hfspace") {
+        try {
+          const ms = await hfPing(AbortSignal.timeout(20_000));
+          return { ok: true, latencyMs: ms, message: "Both free Spaces are online.", balance: null };
+        } catch (err) {
+          return { ok: false, latencyMs: null, message: BackendError.from(err).message, balance: null };
+        }
+      }
       throw unsupported("Provider connections are");
     },
     providerUsage: async () => {
       const all = [...jobs.values()].map((j) => j.job);
-      const mockJobs = all.filter((j) => j.provider === "mock");
-      return [
-        {
-          provider: "mock",
-          jobs: mockJobs.length,
-          succeeded: mockJobs.filter((j) => j.status === "succeeded").length,
-          failed: mockJobs.filter((j) => j.status === "failed").length,
+      return (["mock", "hfspace"] as const).map((provider) => {
+        const mine = all.filter((j) => j.provider === provider);
+        return {
+          provider,
+          jobs: mine.length,
+          succeeded: mine.filter((j) => j.status === "succeeded").length,
+          failed: mine.filter((j) => j.status === "failed").length,
           creditsSpent: 0,
-          lastUsedAt: mockJobs.map((j) => j.createdAt).sort().pop() ?? null,
-        },
-      ];
+          lastUsedAt: mine.map((j) => j.createdAt).sort().pop() ?? null,
+        };
+      });
     },
     probeLocalServer: async () => {
       throw unsupported("Local GPU servers are");
     },
     estimateCost: async (provider) => {
+      if (provider === "hfspace") return { provider, amount: null, unit: "free", label: "Free · shared GPU time" };
       requireMock(provider);
       return { provider, amount: null, unit: "free", label: "Free · offline demo" };
     },
 
     generate: async (req) => {
-      requireMock(req.provider);
+      if (req.provider !== "hfspace") requireMock(req.provider);
+      else if (req.mode === "multiview") requireMock(req.provider, "use multiple views (use the front image in Image mode)");
       if (req.mode === "text" && !req.prompt.trim()) throw new BackendError("validation", "Describe what you want to make first.");
       if (req.mode !== "text" && req.images.length === 0) throw new BackendError("validation", "Add an image first.", "Drop a PNG, JPEG or WebP onto the window, or click to browse.");
       const cat = await getCatalog();
@@ -740,7 +848,18 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
           await enqueue(
             project.id,
             req.variants > 1 ? `${title} · variant ${i + 1}` : title,
-            { kind: "generate", sampleId: sample.id, sourceVersionId: req.parentVersionId ?? null, quality: req.quality, variantIndex: i, prompt: req.prompt, animation: null },
+            {
+              kind: "generate",
+              sampleId: sample.id,
+              sourceVersionId: req.parentVersionId ?? null,
+              quality: req.quality,
+              variantIndex: i,
+              prompt: req.prompt,
+              animation: null,
+              provider: req.provider,
+              imageId: req.images[0]?.imageId ?? null,
+              seed: req.seed ?? null,
+            },
             { variantGroup: group, variantIndex: group ? i : null, parentVersionId: req.parentVersionId ?? null },
           ),
         );
@@ -749,18 +868,18 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
       return { projectId: project.id, jobIds };
     },
     refine: async (req) => {
-      requireMock(req.provider);
+      requireMock(req.provider, "refine models in the browser");
       const v = requireVersion(req.versionId);
       return enqueue(req.projectId, `Refine · ${v.label}`, { kind: "refine", sampleId: null, sourceVersionId: v.id, quality: "high", variantIndex: 0, prompt: "", animation: null });
     },
     retexture: async (req) => {
-      requireMock(req.provider);
+      requireMock(req.provider, "retexture models");
       if (!req.prompt.trim()) throw new BackendError("validation", "Describe the new texture first.");
       const v = requireVersion(req.versionId);
       return enqueue(req.projectId, `Retexture · ${req.prompt}`, { kind: "retexture", sampleId: null, sourceVersionId: v.id, quality: "standard", variantIndex: 0, prompt: req.prompt, animation: null });
     },
     rig: async (req) => {
-      requireMock(req.provider);
+      requireMock(req.provider, "rig models");
       const v = requireVersion(req.versionId);
       return enqueue(req.projectId, `Rig · ${req.animation}`, { kind: "rig", sampleId: null, sourceVersionId: v.id, quality: "standard", variantIndex: 0, prompt: "", animation: req.animation });
     },
@@ -771,6 +890,8 @@ export async function createWebBackend(opts: WebBackendOptions = {}): Promise<Ba
       const t = timers.get(id);
       if (t) clearInterval(t);
       timers.delete(id);
+      aborts.get(id)?.abort();
+      aborts.delete(id);
       sj.job = { ...sj.job, status: "canceled", stage: "Canceled", finishedAt: nowIso(), updatedAt: nowIso() };
       await saveJob(sj);
       pump();

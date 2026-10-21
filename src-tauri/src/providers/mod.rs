@@ -95,6 +95,7 @@ pub struct JobSpec {
     pub fallback_from: Option<String>,
 }
 
+#[derive(Clone)]
 pub struct ImageInput {
     pub bytes: Vec<u8>,
     pub mime: &'static str,

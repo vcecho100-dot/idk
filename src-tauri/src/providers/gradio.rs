@@ -22,6 +22,14 @@ pub struct Gradio<'a> {
     provider: &'static str,
 }
 
+/// Outputs are either a `FileData` or a component update `{ "value": FileData, "__type__": "update" }`.
+pub fn file_of(v: &Value) -> Option<Value> {
+    match v.get("value") {
+        Some(inner) if inner.is_object() => file_of(inner),
+        _ => v.get("path").and_then(Value::as_str).map(|_| v.clone()),
+    }
+}
+
 pub fn session_hash() -> String {
     uuid::Uuid::new_v4().simple().to_string()[..11].to_string()
 }
@@ -136,9 +144,10 @@ impl<'a> Gradio<'a> {
     fn space_error(&self, raw: &str) -> AppError {
         let msg = serde_json::from_str::<Value>(raw).ok().and_then(|v| v.as_str().map(str::to_string)).unwrap_or_else(|| raw.trim_matches('"').to_string());
         let lower = msg.to_lowercase();
-        if lower.contains("quota") || lower.contains("gpu task aborted") || lower.contains("exceeded") {
-            return AppError::new(ErrorCode::RateLimited, format!("{} ran out of free GPU time.", self.provider))
-                .with_hint("Add a free Hugging Face token in Settings → Providers for a bigger daily quota, or try again later.");
+        // ZeroGPU Spaces report an exhausted quota as an error with no message.
+        if msg.is_empty() || msg == "null" || lower.contains("quota") || lower.contains("gpu task aborted") || lower.contains("exceeded") {
+            return AppError::new(ErrorCode::RateLimited, format!("{} is busy or out of free GPU time.", self.provider))
+                .with_hint("Free GPU time is limited per person per day. Add a free Hugging Face token in Settings → Providers for more, or try again later.");
         }
         if lower.contains("out of memory") || lower.contains("cuda") {
             return AppError::new(ErrorCode::Provider, format!("{} ran out of GPU memory.", self.provider))
@@ -148,14 +157,14 @@ impl<'a> Gradio<'a> {
         AppError::new(ErrorCode::Provider, format!("{}: {detail}", self.provider)).with_hint("Try again, or use a different image.")
     }
 
-    /// Downloads an output `FileData` (by its URL, or by server path via `/file=`).
+    /// Downloads an output `FileData`, by server path via `/file=` when it has one: the `url`
+    /// some Gradio 4 apps return is malformed (e.g. `/call/shape/file=…`, a 404).
     pub async fn download(&self, file: &Value, cancel: &CancellationToken) -> AppResult<Vec<u8>> {
-        let url = match file.get("url").and_then(Value::as_str) {
-            Some(u) => u.to_string(),
-            None => {
-                let path = file.get("path").and_then(Value::as_str).ok_or_else(|| AppError::new(ErrorCode::Provider, format!("{} returned no file.", self.provider)))?;
-                self.url(&format!("{}/file={}", self.prefix, path)).to_string()
-            }
+        let file = file_of(file).unwrap_or_else(|| file.clone());
+        let url = match (file.get("path").and_then(Value::as_str), file.get("url").and_then(Value::as_str)) {
+            (Some(path), _) => self.url(&format!("{}/file={}", self.prefix, path)).to_string(),
+            (None, Some(u)) => u.to_string(),
+            (None, None) => return Err(AppError::new(ErrorCode::Provider, format!("{} returned no file.", self.provider))),
         };
         self.net.download(self.provider, &url, cancel).await
     }

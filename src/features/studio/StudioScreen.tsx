@@ -3,7 +3,6 @@ import { PanelRight } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { getBackend } from "@/lib/backend";
 import { cn } from "@/lib/utils";
-import { useCreate } from "@/stores/create";
 import { useRoute } from "@/stores/route";
 import { redo, undo, useStudio } from "@/stores/studio";
 import { RENDER_MODES, useViewer } from "@/stores/viewer";
@@ -93,16 +92,6 @@ export default function StudioScreen({ projectId: routeProjectId }: { projectId?
   useEffect(() => {
     if (detail) ensureThumbnails(detail.versions);
   }, [detail]);
-
-  // Images dropped anywhere on the window become the reference image.
-  useEffect(
-    () =>
-      getBackend().onDrop((items) => {
-        const img = items.images[0];
-        if (img) useCreate.getState().set({ mode: "image", image: img });
-      }),
-    [],
-  );
 
   // Leaving the studio exits focus mode and compare.
   useEffect(() => () => useViewer.getState().set({ focusMode: false, compareVersionId: null }), []);

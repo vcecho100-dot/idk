@@ -7,6 +7,7 @@ import { useRoute } from "@/stores/route";
 import { useSettings } from "@/stores/settings";
 import { useAppearance } from "./useAppearance";
 import { useEngineEvents } from "./useEngineEvents";
+import { useFileDrop } from "./useFileDrop";
 import { HomeScreen } from "@/features/home/HomeScreen";
 import { ScreenFallback } from "./ScreenFallback";
 
@@ -39,6 +40,7 @@ function Routes() {
 export function App() {
   useAppearance();
   useEngineEvents();
+  useFileDrop();
   const theme = useSettings((s) => s.settings.theme);
   const reducedMotion = useSettings((s) => s.settings.reducedMotion);
 

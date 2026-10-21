@@ -1,7 +1,7 @@
 {
   "name": "shift3d",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shift ideas into 3D. AI text/image to textured, game-ready 3D models.",
   "type": "module",
   "license": "MIT",

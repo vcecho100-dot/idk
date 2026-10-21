@@ -91,6 +91,17 @@ fn append(bin: &mut Vec<u8>, bytes: &[u8]) -> (usize, usize) {
 
 /// Adds front-projected UVs + the image as a base color texture to every primitive.
 pub fn project_image(model: &[u8], image: &[u8], mime: &str) -> AppResult<Vec<u8>> {
+    // glTF core only allows PNG and JPEG textures (FLUX returns WebP).
+    let converted;
+    let (image, mime) = if mime == "image/png" || mime == "image/jpeg" {
+        (image, mime)
+    } else {
+        let img = image::load_from_memory(image).map_err(|_| AppError::new(ErrorCode::Validation, "The reference image couldn't be read."))?;
+        let mut out = std::io::Cursor::new(Vec::new());
+        img.write_to(&mut out, image::ImageFormat::Png).map_err(|_| AppError::new(ErrorCode::Internal, "Couldn't encode the texture."))?;
+        converted = out.into_inner();
+        (converted.as_slice(), "image/png")
+    };
     let mut g = glb::parse(model)?;
     let rect = object_rect(image);
     let mut bin = g.bin.take().unwrap_or_default();
